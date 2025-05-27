@@ -12,10 +12,26 @@ dotenv.config();
 
 const app = express();
 
-// Middleware with explicit CORS origin for local frontend
+// Allowed origins including your Vite frontend running on localhost:5173
+const allowedOrigins = [
+  "http://localhost:5173",
+  "http://localhost:3000", // optional, if you use React dev server
+  // add deployed frontend URL here, e.g.
+  // "https://yourfrontenddomain.com"
+];
+
 app.use(cors({
-  origin: "http://localhost:3000",  // change port if your frontend runs elsewhere
+  origin: function (origin, callback) {
+    // allow requests with no origin like Postman or curl
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.indexOf(origin) === -1) {
+      const msg = `The CORS policy does not allow access from origin: ${origin}`;
+      return callback(new Error(msg), false);
+    }
+    return callback(null, true);
+  }
 }));
+
 app.use(express.json());
 
 // Connect to MongoDB
