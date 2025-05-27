@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import * as faceapi from "face-api.js";
 import { useNavigate } from "react-router-dom";
+import { FaGithub, FaLinkedin } from "react-icons/fa";
 
 const emotionToSongs = {
   happy: [
@@ -31,7 +32,7 @@ const emotionToSongs = {
   fearful: [
     "https://www.youtube.com/embed/_Bu9QLDTHX4?autoplay=1",
     "https://www.youtube.com/embed/C805Nt0JPIY?autoplay=1",
-    "https://www.youtube.com/embed/Kjyr9JYd3-I?autoplay=1",
+     "https://www.youtube.com/embed/jLshY-zUfZ4?autoplay=1",
   ],
   disgusted: [
     "https://www.youtube.com/embed/pon8irRa8II?autoplay=1",
@@ -44,6 +45,8 @@ function Dashboard() {
   const [emotion, setEmotion] = useState(null);
   const [modelsLoaded, setModelsLoaded] = useState(false);
   const [songIndex, setSongIndex] = useState(0);
+  const [detecting, setDetecting] = useState(false);
+  const [countdown, setCountdown] = useState(0);
   const navigate = useNavigate();
 
   const storedUser = localStorage.getItem("user");
@@ -82,46 +85,49 @@ function Dashboard() {
       .catch((err) => console.error("Camera error:", err));
   };
 
-  const handleVideoPlay = async () => {
-    const interval = setInterval(async () => {
-      const detections = await faceapi
-        .detectSingleFace(videoRef.current, new faceapi.TinyFaceDetectorOptions())
-        .withFaceExpressions();
+  const handleStartMoodDetection = () => {
+    setDetecting(true);
+    setCountdown(3); // 3 seconds to prepare face
 
-      if (detections && detections.expressions) {
-        const expressions = detections.expressions;
-        const maxEmotion = Object.keys(expressions).reduce((a, b) =>
-          expressions[a] > expressions[b] ? a : b
-        );
-
-        setEmotion((prev) => {
-          if (prev !== maxEmotion) {
-            setSongIndex(0);
-          }
-          return maxEmotion;
-        });
-      }
+    const countdownInterval = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev <= 1) {
+          clearInterval(countdownInterval);
+          detectMoodOnce(); // start mood detection after countdown
+          return 0;
+        }
+        return prev - 1;
+      });
     }, 1000);
-
-    return () => clearInterval(interval);
   };
 
-  const handleVideoEnd = () => {
-    if (emotion && emotionToSongs[emotion]) {
-      setSongIndex((prevIndex) => (prevIndex + 1) % emotionToSongs[emotion].length);
+  const detectMoodOnce = async () => {
+    const detections = await faceapi
+      .detectSingleFace(videoRef.current, new faceapi.TinyFaceDetectorOptions())
+      .withFaceExpressions();
+
+    if (detections && detections.expressions) {
+      const expressions = detections.expressions;
+      const maxEmotion = Object.keys(expressions).reduce((a, b) =>
+        expressions[a] > expressions[b] ? a : b
+      );
+
+      setEmotion(maxEmotion);
+      setSongIndex(0);
     }
+    setDetecting(false);
   };
 
   const handleNextSong = () => {
     if (emotion && emotionToSongs[emotion]) {
-      setSongIndex((prevIndex) => (prevIndex + 1) % emotionToSongs[emotion].length);
+      setSongIndex((prev) => (prev + 1) % emotionToSongs[emotion].length);
     }
   };
 
   const handlePrevSong = () => {
     if (emotion && emotionToSongs[emotion]) {
-      setSongIndex((prevIndex) =>
-        (prevIndex - 1 + emotionToSongs[emotion].length) % emotionToSongs[emotion].length
+      setSongIndex(
+        (prev) => (prev - 1 + emotionToSongs[emotion].length) % emotionToSongs[emotion].length
       );
     }
   };
@@ -153,17 +159,22 @@ function Dashboard() {
         </button>
       </div>
 
-      
-
       <video
         ref={videoRef}
         autoPlay
         muted
-        onPlay={handleVideoPlay}
         width="400"
         height="300"
         className="rounded-xl shadow-lg"
       />
+
+      <button
+        onClick={handleStartMoodDetection}
+        disabled={detecting}
+        className="mt-4 bg-yellow-500 text-black px-6 py-2 rounded-lg font-semibold hover:bg-yellow-400"
+      >
+        {detecting ? (countdown > 0 ? `Detecting in ${countdown}s...` : "Detecting...") : emotion ? "Sync Mood Again" : "Start Mood Detection"}
+      </button>
 
       {emotion && (
         <p className="mt-4 text-xl text-primary font-semibold">
@@ -182,8 +193,8 @@ function Dashboard() {
             allow="autoplay; encrypted-media"
             allowFullScreen
             className="rounded-lg shadow-lg"
-            onEnded={handleVideoEnd}
           ></iframe>
+
           <div className="flex gap-4">
             <button
               onClick={handlePrevSong}
@@ -201,9 +212,27 @@ function Dashboard() {
         </div>
       )}
 
-      <footer className="w-full text-center mt-10 text-gray-400 border-t pt-4">
-        Developed by Pooja Kumavat | Email: pooja.kumavat@example.com
-      </footer>
+        <footer className="text-center py-6 border-t border-gray-700 text-gray-400 text-sm">
+  <div className="flex justify-center items-center gap-4 mb-2">
+    <a
+      href="https://github.com/kumavatpooja"
+      target="_blank"
+      rel="noopener noreferrer"
+      className="hover:text-white transition"
+    >
+      <FaGithub size={24} />
+    </a>
+    <a
+      href="https://linkedin.com/in/pooja-kumavat-b52782228"
+      target="_blank"
+      rel="noopener noreferrer"
+      className="hover:text-white transition"
+    >
+      <FaLinkedin size={24} />
+    </a>
+  </div>
+  Developed by Pooja Kumavat | Email: kumavatpooja232@gmail.com
+</footer>
     </div>
   );
 }
