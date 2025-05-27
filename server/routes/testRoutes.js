@@ -1,9 +1,9 @@
 import express from "express";
 const router = express.Router();
 
-router.get("/ping", (req, res) => {
-    res.send("Pong from backend");
-    // ✅ Sends proper JSON
-});
+router.get('/ping', (req, res) => {
+    res.json({ message: "Pong from backend" }); // ✅ this sends JSON
+  });
+  
 
 export default router;

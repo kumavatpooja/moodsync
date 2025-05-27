@@ -6,9 +6,17 @@ function BackendPing() {
 
   useEffect(() => {
     fetch(`${BACKEND_URL}/api/test/ping`)
-      .then(res => res.json())
-      .then(data => setMessage(data.message))
-      .catch(() => setMessage("❌ Backend not reachable"));
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        return res.json();
+      })
+      .then((data) => setMessage(`✅ ${data.message}`))
+      .catch((err) => {
+        console.error("❌ Backend fetch error:", err);
+        setMessage("❌ Backend not reachable");
+      });
   }, []);
 
   return <p className="text-sm text-green-400">{message}</p>;
