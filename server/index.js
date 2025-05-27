@@ -6,17 +6,24 @@ import connectDB from "./config/db.js";
 import authRoutes from "./routes/authRoutes.js";
 import moodRoutes from "./routes/moodRoutes.js";
 import playlistRoutes from "./routes/playlistRoutes.js";
-import testRoutes from './routes/testRoutes.js';
+import testRoutes from "./routes/testRoutes.js";
 
 dotenv.config();
 
 const app = express();
 
-// Middleware
-app.use(cors());
+// Middleware with explicit CORS origin for local frontend
+app.use(cors({
+  origin: "http://localhost:3000",  // change port if your frontend runs elsewhere
+}));
 app.use(express.json());
 
-// Test route
+// Connect to MongoDB
+console.log("👉 Starting server...");
+connectDB();
+console.log("👉 After DB connect call");
+
+// Test root route
 app.get("/", (req, res) => {
   res.send("MoodSync Backend is Running ✅");
 });
@@ -25,24 +32,10 @@ app.get("/", (req, res) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/moods", moodRoutes);
 app.use("/api/playlists", playlistRoutes);
-app.use('/api/test', testRoutes); // Register test routes here
+app.use("/api/test", testRoutes);
 
+// Port
 const PORT = process.env.PORT || 5000;
-
-// Async start function
-async function startServer() {
-  try {
-    console.log("👉 Connecting to MongoDB...");
-    await connectDB(); // Wait for DB connection before starting server
-    console.log("👉 MongoDB connected!");
-
-    app.listen(PORT, () => {
-      console.log(`🚀 Server running on port ${PORT}`);
-    });
-  } catch (error) {
-    console.error("❌ Failed to connect to DB, server not started:", error);
-  }
-}
-
-// Start the server
-startServer();
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`);
+});
