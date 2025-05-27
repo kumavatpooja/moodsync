@@ -6,6 +6,9 @@ import AuthModal from "../components/AuthModal";
 import moodAnimation from "../assets/mood-animation.gif";
 
 import { FaGithub, FaLinkedin } from "react-icons/fa";
+import BackendPing from "../components/BackendPing.jsx";
+
+
 
 function Home() {
   const [showAuth, setShowAuth] = useState(false);
@@ -37,6 +40,8 @@ function Home() {
         <p className="text-lg text-gray-300 text-center mb-6">
           Emotion-based Music Recommender
         </p>
+        <BackendPing />
+
 
         <button
           onClick={() => setShowAuth(true)}
