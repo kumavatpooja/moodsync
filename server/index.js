@@ -12,24 +12,24 @@ dotenv.config();
 
 const app = express();
 
-// Allowed origins including your Vite frontend running on localhost:5173
+// ✅ Allowed frontend origins
 const allowedOrigins = [
-  "http://localhost:5173",
-  "http://localhost:3000", // optional, if you use React dev server
-  // add deployed frontend URL here, e.g.
-  // "https://yourfrontenddomain.com"
+  "http://localhost:5173", // Vite local dev
+  "http://localhost:3000", // React dev server (if used)
+  "https://glittering-taffy-d762d8.netlify.app", // ✅ Netlify deployed frontend
 ];
 
 app.use(cors({
   origin: function (origin, callback) {
-    // allow requests with no origin like Postman or curl
+    // Allow requests with no origin (e.g., Postman)
     if (!origin) return callback(null, true);
     if (allowedOrigins.indexOf(origin) === -1) {
-      const msg = `The CORS policy does not allow access from origin: ${origin}`;
+      const msg = `❌ The CORS policy does not allow access from origin: ${origin}`;
       return callback(new Error(msg), false);
     }
     return callback(null, true);
-  }
+  },
+  credentials: true, // ✅ Only if you're using cookies or sessions
 }));
 
 app.use(express.json());
