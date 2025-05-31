@@ -1,4 +1,3 @@
-// config/db.js
 import mongoose from "mongoose";
 
 const connectDB = async () => {
@@ -11,4 +10,4 @@ const connectDB = async () => {
   }
 };
 
-export default connectDB;  // <-- default export
+export default connectDB;
