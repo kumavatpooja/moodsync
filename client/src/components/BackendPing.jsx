@@ -19,7 +19,10 @@ function BackendPing() {
       });
   }, []);
 
-  return <p className="text-sm text-green-400">{message}</p>;
+  // Only show this in development
+  return import.meta.env.MODE === "development" ? (
+    <p className="text-sm text-green-400">{message}</p>
+  ) : null;
 }
 
 export default BackendPing;

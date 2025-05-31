@@ -32,7 +32,7 @@ const emotionToSongs = {
   fearful: [
     "https://www.youtube.com/embed/_Bu9QLDTHX4?autoplay=1",
     "https://www.youtube.com/embed/C805Nt0JPIY?autoplay=1",
-     "https://www.youtube.com/embed/jLshY-zUfZ4?autoplay=1",
+    "https://www.youtube.com/embed/jLshY-zUfZ4?autoplay=1",
   ],
   disgusted: [
     "https://www.youtube.com/embed/pon8irRa8II?autoplay=1",
@@ -64,6 +64,7 @@ function Dashboard() {
         faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
         faceapi.nets.faceExpressionNet.loadFromUri(MODEL_URL),
       ]);
+      await new Promise((resolve) => setTimeout(resolve, 1000)); // ✅ Wait after models load
       setModelsLoaded(true);
     };
 
@@ -87,13 +88,13 @@ function Dashboard() {
 
   const handleStartMoodDetection = () => {
     setDetecting(true);
-    setCountdown(3); // 3 seconds to prepare face
+    setCountdown(3);
 
     const countdownInterval = setInterval(() => {
       setCountdown((prev) => {
         if (prev <= 1) {
           clearInterval(countdownInterval);
-          detectMoodOnce(); // start mood detection after countdown
+          detectMoodOnce(); // ✅ Start detection
           return 0;
         }
         return prev - 1;
@@ -102,9 +103,18 @@ function Dashboard() {
   };
 
   const detectMoodOnce = async () => {
-    const detections = await faceapi
-      .detectSingleFace(videoRef.current, new faceapi.TinyFaceDetectorOptions())
-      .withFaceExpressions();
+    let attempts = 0;
+    let detections = null;
+
+    while (attempts < 3 && !detections) {
+      detections = await faceapi
+        .detectSingleFace(videoRef.current, new faceapi.TinyFaceDetectorOptions())
+        .withFaceExpressions();
+      attempts++;
+      if (!detections) {
+        await new Promise((resolve) => setTimeout(resolve, 500));
+      }
+    }
 
     if (detections && detections.expressions) {
       const expressions = detections.expressions;
@@ -113,8 +123,12 @@ function Dashboard() {
       );
 
       setEmotion(maxEmotion);
-      setSongIndex(0);
+      const randomIndex = Math.floor(Math.random() * emotionToSongs[maxEmotion].length);
+      setSongIndex(randomIndex);
+    } else {
+      alert("No face detected. Please ensure your face is visible to the camera.");
     }
+
     setDetecting(false);
   };
 
@@ -212,27 +226,27 @@ function Dashboard() {
         </div>
       )}
 
-        <footer className="text-center py-6 border-t border-gray-700 text-gray-400 text-sm">
-  <div className="flex justify-center items-center gap-4 mb-2">
-    <a
-      href="https://github.com/kumavatpooja"
-      target="_blank"
-      rel="noopener noreferrer"
-      className="hover:text-white transition"
-    >
-      <FaGithub size={24} />
-    </a>
-    <a
-      href="https://linkedin.com/in/pooja-kumavat-b52782228"
-      target="_blank"
-      rel="noopener noreferrer"
-      className="hover:text-white transition"
-    >
-      <FaLinkedin size={24} />
-    </a>
-  </div>
-  Developed by Pooja Kumavat | Email: kumavatpooja232@gmail.com
-</footer>
+      <footer className="text-center py-6 border-t border-gray-700 text-gray-400 text-sm">
+        <div className="flex justify-center items-center gap-4 mb-2">
+          <a
+            href="https://github.com/kumavatpooja"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:text-white transition"
+          >
+            <FaGithub size={24} />
+          </a>
+          <a
+            href="https://linkedin.com/in/pooja-kumavat-b52782228"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:text-white transition"
+          >
+            <FaLinkedin size={24} />
+          </a>
+        </div>
+        Developed by Pooja Kumavat | Email: kumavatpooja232@gmail.com
+      </footer>
     </div>
   );
 }
