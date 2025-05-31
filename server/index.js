@@ -16,7 +16,7 @@ const app = express();
 const allowedOrigins = [
   "http://localhost:5173", // Vite local dev server
   "http://localhost:3000",  // React dev server (optional)
-  "moodsyncapp.netlify.app", // Your Netlify deployed frontend URL
+  'https://moodsyncapp.netlify.app', // Your Netlify deployed frontend URL
 ];
 
 // CORS Middleware
